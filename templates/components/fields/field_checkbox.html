@@ -1,0 +1,19 @@
+{% macro field_checkbox(name, label, checked=False, required=False, description=None) %}
+    <div class="flex items-start gap-3">
+        <input type="checkbox"
+               id="{{ name }}"
+               name="{{ name }}"
+               value="1"
+               class="mt-0.5 h-4 w-4 rounded border-primary-300 text-primary-600 focus:ring-primary-500 dark:border-primary-600 dark:bg-surface-dark dark:focus:ring-primary-400"
+               {% if checked %}checked{% endif %}
+               {% if required %}required aria-required="true"{% endif %} />
+        <div class="space-y-1 text-left">
+            <label for="{{ name }}"
+                   class="text-sm font-medium text-ink dark:text-ink-inverted">
+                {{ label }}
+                {% if required %}<span class="text-rose-500">*</span>{% endif %}
+            </label>
+            {% if description %}<p class="text-xs text-ink-soft dark:text-ink-lighter">{{ description }}</p>{% endif %}
+        </div>
+    </div>
+{% endmacro %}

@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Validation des recettes{% endblock %}
+{% block content %}
+    <div class="container max-w-5xl py-10 space-y-6">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">Validation des recettes</h1>
+                <p class="mt-1 text-sm text-ink-soft dark:text-ink-lighter">
+                    Gère les recettes en attente : valide, demande des modifications ou refuse en un clic.
+                </p>
+            </div>
+            {{ button("Retour admin",
+                        "secondary",
+                        "fa-solid fa-arrow-left",
+                        href=url_for("admin.dashboard") 
+            ) }}
+        </div>
+        <!-- Liste des recettes en attente -->
+        <div id="pending-container"
+             class="mt-2 rounded-2xl border border-primary-200 bg-surface-soft shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+            <div id="pending-list"
+                 class="divide-y divide-primary-200/70 dark:divide-primary-700/60"></div>
+            <div id="empty-state"
+                 class="hidden px-6 py-10 text-center text-sm text-ink-soft dark:text-ink-lighter">
+                <div class="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <p class="font-medium text-ink dark:text-ink-inverted">Aucune recette en attente de validation.</p>
+                <p class="mt-1 text-xs text-ink-soft dark:text-ink-lighter">
+                    Toutes les recettes ont été traitées. Reviens plus tard ou invite les utilisateurs à en proposer de
+                    nouvelles.
+                </p>
+            </div>
+        </div>
+    </div>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const listEl = document.getElementById("pending-list");
+    const emptyEl = document.getElementById("empty-state");
+    const toastContainer = document.getElementById("admin-toast-container");
+
+    const PENDING_URL = "{{ url_for('api.admin_pending_recipes') }}";
+    const STATUS_URL_TEMPLATE = "{{ url_for('api.admin_update_recipe_status', recipe_id=0) }}";
+
+    function buildStatusUrl(recipeId) {
+        // on remplace le 0 dans l'URL par l'id réel
+        return STATUS_URL_TEMPLATE.replace("/0", "/" + recipeId);
+    }
+
+
+    function setLoading(isLoading) {
+        if (isLoading) {
+            listEl.innerHTML = `
+                <div class="flex items-center justify-center px-6 py-10 text-sm text-ink-soft dark:text-ink-lighter">
+                  <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+                  Chargement des recettes en attente...
+                </div>
+              `;
+            emptyEl.classList.add("hidden");
+        }
+    }
+
+    function renderRecipes(recipes) {
+        listEl.innerHTML = "";
+
+        if (!recipes.length) {
+            emptyEl.classList.remove("hidden");
+            return;
+        }
+
+        emptyEl.classList.add("hidden");
+
+        recipes.forEach(r => {
+            const author = r.author_display_name || r.author_username;
+            const description = (r.description || "").trim();
+            const descTrimmed = description.length > 150
+                ? description.slice(0, 150) + "…"
+                : description || "Aucune description fournie.";
+
+            const createdAt = r.created_at || "";
+
+            const card = document.createElement("div");
+            card.className = "flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between";
+
+            card.innerHTML = `
+                <div class="flex flex-1 flex-col gap-2 sm:gap-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-sm font-semibold text-ink dark:text-ink-inverted">
+                      ${r.title}
+                    </p>
+                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+                      <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                      En attente
+                    </span>
+                  </div>
+                  <p class="text-xs text-ink-soft dark:text-ink-lighter">
+                    Par <span class="font-medium text-ink dark:text-ink-inverted">${author}</span>
+                    <span class="mx-1">•</span>
+                    Créée le ${createdAt}
+                  </p>
+                  <p class="text-xs text-ink-soft dark:text-ink-lighter line-clamp-2">
+                    ${descTrimmed}
+                  </p>
+                </div>
+
+                <div class="mt-2 flex flex-wrap items-center gap-2 sm:mt-0 sm:flex-row">
+                  <a href="/recipes/${r.id}" class="inline-flex items-center rounded-full border border-primary-200 bg-surface-light px-3 py-1.5 text-[11px] font-medium text-primary-700 hover:bg-primary-50 dark:border-primary-700 dark:bg-surface-dark dark:text-primary-200 dark:hover:bg-primary-900/40">
+                    <i class="fa-solid fa-eye mr-1 text-[10px]"></i>
+                    Voir la recette
+                  </a>
+
+                  <button type="button" class="js-status-btn inline-flex items-center rounded-full bg-emerald-500 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400/70" data-id="${r.id}" data-status="APPROVED">
+                    <i class="fa-solid fa-check mr-1 text-[10px]"></i>
+                    Valider
+                  </button>
+
+                  <button type="button" class="js-status-btn inline-flex items-center rounded-full bg-amber-400 px-3 py-1.5 text-[11px] font-semibold text-amber-900 hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-300/70" data-id="${r.id}" data-status="CHANGES_REQUIRED">
+                    <i class="fa-solid fa-pen mr-1 text-[10px]"></i>
+                    Demander modifs
+                  </button>
+
+                  <button type="button" class="js-status-btn inline-flex items-center rounded-full bg-rose-500 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-400/70" data-id="${r.id}" data-status="REJECTED">
+                    <i class="fa-solid fa-xmark mr-1 text-[10px]"></i>
+                    Refuser
+                  </button>
+                </div>
+              `;
+            listEl.appendChild(card);
+        });
+
+        bindStatusButtons();
+    }
+
+    function bindStatusButtons() {
+        const buttons = listEl.querySelectorAll(".js-status-btn");
+
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const recipeId = btn.dataset.id;
+                const status = btn.dataset.status;
+
+                if (!recipeId || !status) return;
+
+                // Petite protection UX : désactiver tous les boutons de cette ligne
+                const card = btn.closest("div.flex.flex-col, div.flex.sm\\:flex-row") || btn.closest("div");
+                const lineButtons = card ? card.querySelectorAll("button.js-status-btn") : [btn];
+
+                lineButtons.forEach(b => b.disabled = true);
+
+                fetch(buildStatusUrl(recipeId), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({status: status})
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = "{{ url_for('auth.login') }}";
+                        return null;
+                    }
+                    if (response.status === 403) {
+                        window.location.href = "{{ url_for('main.home') }}";
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (!data || data.error) {
+                      console.error("Erreur API:", data);
+                      lineButtons.forEach(b => b.disabled = false);
+
+                      if (data && data.error) {
+                        if (window.showFlash) {
+                            window.showFlash("Une erreur est survenue (" + data.error + ").", "error");
+                        }
+                      }
+                      return;
+                    }
+
+                    if (data.flash_message && window.showFlash) {
+                        window.showFlash(data.flash_message, data.flash_category);
+                    }
+
+
+                    // On recharge la liste des PENDING
+                    loadPending();
+
+                    if (window.refreshNotifications) {
+                        window.refreshNotifications();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    lineButtons.forEach(b => b.disabled = false);
+                });
+            });
+        });
+    }
+
+    function loadPending() {
+        setLoading(true);
+        fetch(PENDING_URL, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = "{{ url_for('auth.login') }}";
+                    return null;
+                }
+                if (response.status === 403) {
+                    window.location.href = "{{ url_for('main.home') }}";
+                    return null;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data) return;
+                renderRecipes(data);
+            })
+            .catch(err => {
+                console.error(err);
+                listEl.innerHTML = `
+                  <div class="px-6 py-10 text-center text-sm text-rose-600 dark:text-rose-300">
+                    Une erreur est survenue lors du chargement des recettes en attente.
+                  </div>
+                `;
+            });
+    }
+
+    // Initial load
+    loadPending();
+});
+    </script>
+{% endblock %}

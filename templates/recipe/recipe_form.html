@@ -1,0 +1,303 @@
+{% extends "layout.html" %}
+{% from "components/fields/field_text.html" import field_text %}
+{% from "components/fields/field_number.html" import field_number %}
+{% from "components/fields/field_ingredient.html" import ingredient_row %}
+{% from "components/fields/field_step.html" import step_row %}
+{% from "components/fields/field_image.html" import field_image %}
+{% from "components/buttons.html" import button %}
+{% block title %}
+    {% if mode == "edit" %}
+        Modifier une recette
+    {% else %}
+        Créer une recette
+    {% endif %}
+{% endblock %}
+{% block content %}
+    {% set is_edit = (mode == "edit") %}
+    <div class="container max-w-4xl py-10 space-y-8">
+        <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 rounded-full bg-primary-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-primary-700 dark:bg-primary-700/20 dark:text-primary-100">
+                <i class="fa-solid fa-utensils text-[11px]"></i>
+                <span>
+                    {% if is_edit %}
+                        Édition de recette
+                    {% else %}
+                        Nouvelle recette
+                    {% endif %}
+                </span>
+            </div>
+            <div class="space-y-1">
+                <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                    {% if is_edit %}
+                        Mettre à jour votre création culinaire
+                    {% else %}
+                        Partagez une nouvelle création culinaire
+                    {% endif %}
+                </h1>
+                <p class="text-sm text-ink-soft dark:text-ink-lighter">
+                    Renseignez les informations principales, les ingrédients et les étapes de préparation.
+                    La recette devra être validée par un administrateur avant d’être visible par tous.
+                </p>
+            </div>
+        </div>
+        <form method="post"
+              {% if is_edit %} action="{{ url_for('recipes.edit_recipe', recipe_id=recipe.id) }}" {% else %} action="{{ url_for('recipes.create_recipe') }}" {% endif %}
+              enctype="multipart/form-data"
+              class="space-y-6">
+            <section class="rounded-2xl border border-primary-100 bg-surface-soft/90 p-5 shadow-md dark:border-primary-700/60 dark:bg-surface-dark/90">
+                <div class="mb-4 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-800/60 dark:text-primary-100">
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-display font-semibold text-primary-700 dark:text-primary-100">Informations principales</h2>
+                            <p class="text-[11px] text-ink-soft dark:text-ink-lighter">
+                                Titre, description, visuel et quelques détails pratiques.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    {{ field_text("title",
+                                        "Titre de la recette",
+                                        required=True,
+                                        value=(form.title if form and form.title is not none else "") ,
+                    error=(errors.title if errors and errors.title is not none else None)
+                    ) }}
+                    {{ field_text("description",
+                                        "Description courte",
+                                        value=(form.description if form and form.description is not none else "") ,
+                    placeholder="Une brève description de la recette, du contexte ou du goût...",
+                    error=(errors.description if errors and errors.description is not none else None)
+                    ) }}
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                {{ field_number("servings",
+                                                                "Nombre de portions",
+                                                                required=True,
+                                                                value=(form.servings if form and form.servings is not none else "") ,
+                                min=1,
+                                placeholder="Ex: 4",
+                                error=(errors.servings if errors and errors.servings is not none else None)
+                                ) }}
+                                {{ field_number("prep_time_minutes",
+                                                                "Temps de préparation (minutes)",
+                                                                required=True,
+                                                                value=(form.prep_time_minutes if form and form.prep_time_minutes is not none else "") ,
+                                min=0,
+                                placeholder="Ex: 30",
+                                error=(errors.prep_time_minutes if errors and errors.prep_time_minutes is not none else None)
+                                ) }}
+                            </div>
+                        </div>
+                        <div class="rounded-xl border border-primary-100 bg-surface-light/90 p-3 text-xs shadow-sm dark:border-primary-700/60 dark:bg-surface-dark/80">
+                            <p class="mb-2 text-[11px] font-semibold text-ink-soft dark:text-ink-lighter">Image de la recette</p>
+                            {% if is_edit and recipe.image_path %}
+                                <div class="mb-3 flex items-center gap-3">
+                                    <div class="h-16 w-16 overflow-hidden rounded-lg border border-primary-100/80 shadow-sm dark:border-primary-700/60">
+                                        <img src="{{ url_for('static', filename=recipe.image_path) }}"
+                                             alt="Image actuelle de {{ recipe.title }}"
+                                             class="h-full w-full object-cover" />
+                                    </div>
+                                    <p class="text-[11px] text-ink-soft dark:text-ink-lighter">
+                                        Image actuelle. Vous pouvez en sélectionner une nouvelle pour la remplacer.
+                                    </p>
+                                </div>
+                            {% endif %}
+                            {{ field_image("image",
+                                                        ( "Image de la recette (optionnel)" if not is_edit else "Nouvelle image (optionnel)") ,
+                            error=(errors.image if errors and errors.image is not none else None)
+                            ) }}
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="rounded-2xl border border-primary-100 bg-surface-soft/90 p-5 shadow-md dark:border-primary-700/60 dark:bg-surface-dark/90">
+                <div class="mb-4 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-800/60 dark:text-primary-100">
+                            <i class="fa-solid fa-carrot text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-display font-semibold text-primary-700 dark:text-primary-100">Ingrédients</h2>
+                            <p class="text-[11px] text-ink-soft dark:text-ink-lighter">
+                                Utilisez la liste déroulante ou tapez un nouvel ingrédient, puis indiquez la quantité.
+                            </p>
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-ink-soft dark:text-ink-lighter">Ajoutez au moins un ingrédient.</span>
+                </div>
+                <datalist id="ingredients-options">
+                    {% for ing in ingredients_options %}<option value="{{ ing.name }}"></option>{% endfor %}
+                </datalist>
+                <div id="ingredient-rows" class="space-y-3">
+                    {% if ingredient_values %}
+                        {% for ing in ingredient_values %}{{ ingredient_row(ing.name, ing.quantity) }}{% endfor %}
+                    {% else %}
+                        {{ ingredient_row() }}
+                    {% endif %}
+                </div>
+                {% if errors.ingredients %}
+                    <p class="mt-2 text-xs text-rose-600 dark:text-rose-400">{{ errors.ingredients }}</p>
+                {% endif %}
+                <div class="pt-3">
+                    <button type="button"
+                            id="add-ingredient-row"
+                            class="inline-flex items-center rounded-lg border border-primary-100 bg-surface-light px-3 py-2 text-xs font-medium text-ink-soft hover:border-primary-300 hover:text-primary-700 dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-lighter dark:hover:border-primary-500 dark:hover:text-primary-50">
+                        <i class="fa-solid fa-plus mr-2 text-[10px]"></i>
+                        Ajouter un ingrédient
+                    </button>
+                </div>
+            </section>
+            <section class="rounded-2xl border border-primary-100 bg-surface-soft/90 p-5 shadow-md dark:border-primary-700/60 dark:bg-surface-dark/90">
+                <div class="mb-4 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-800/60 dark:text-primary-100">
+                            <i class="fa-solid fa-list-ol text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-display font-semibold text-primary-700 dark:text-primary-100">Étapes de préparation</h2>
+                            <p class="text-[11px] text-ink-soft dark:text-ink-lighter">
+                                Détaillez les étapes une par une. Elles seront numérotées automatiquement.
+                            </p>
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-ink-soft dark:text-ink-lighter">Ajoutez au moins une étape.</span>
+                </div>
+                <div id="step-rows" class="space-y-3">
+                    {% if step_values %}
+                        {% for step in step_values %}{{ step_row(step.content) }}{% endfor %}
+                    {% else %}
+                        {{ step_row() }}
+                    {% endif %}
+                </div>
+                {% if errors.steps %}<p class="mt-2 text-xs text-rose-600 dark:text-rose-400">{{ errors.steps }}</p>{% endif %}
+                <div class="pt-3">
+                    <button type="button"
+                            id="add-step-row"
+                            class="inline-flex items-center rounded-lg border border-primary-100 bg-surface-light px-3 py-2 text-xs font-medium text-ink-soft hover:border-primary-300 hover:text-primary-700 dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-lighter dark:hover:border-primary-500 dark:hover:text-primary-50">
+                        <i class="fa-solid fa-plus mr-2 text-[10px]"></i>
+                        Ajouter une étape
+                    </button>
+                </div>
+            </section>
+            <div class="flex flex-col-reverse items-center justify-between gap-3 pt-2 sm:flex-row">
+                {% if is_edit %}
+                    {{ button("Annuler",
+                                        "secondary",
+                                        "fa-solid fa-arrow-left",
+                                        href=url_for('recipes.show_recipe', recipe_id=recipe.id) 
+                    ) }}
+                {% else %}
+                    {{ button("Annuler",
+                                        "secondary",
+                                        "fa-solid fa-arrow-left",
+                                        href=url_for('recipes.list_recipes') 
+                    ) }}
+                {% endif %}
+                {{ button(( "Mettre à jour la recette" if is_edit else "Créer la recette") ,
+                "primary",
+                "fa-solid fa-utensils",
+                type="submit"
+                ) }}
+            </div>
+        </form>
+    </div>
+    <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // INGREDIENTS
+    var ingContainer = document.getElementById('ingredient-rows');
+    var addIngButton = document.getElementById('add-ingredient-row');
+
+    if (ingContainer && addIngButton) {
+      function bindRemoveIngredientButtons() {
+        var rows = ingContainer.querySelectorAll('.ingredient-row');
+        rows.forEach(function (row) {
+          var btn = row.querySelector('.js-remove-ingredient');
+          if (!btn) return;
+          if (rows.length === 1) {
+            btn.style.display = 'none';
+          } else {
+            btn.style.display = 'inline-flex';
+          }
+          btn.onclick = function () {
+            if (ingContainer.querySelectorAll('.ingredient-row').length > 1) {
+              row.remove();
+              bindRemoveIngredientButtons();
+            }
+          };
+        });
+      }
+
+      addIngButton.addEventListener('click', function () {
+        var rows = ingContainer.querySelectorAll('.ingredient-row');
+        if (!rows.length) return;
+        var last = rows[rows.length - 1];
+        var clone = last.cloneNode(true);
+        clone.querySelectorAll('input').forEach(function (input) {
+          input.value = '';
+        });
+        ingContainer.appendChild(clone);
+        bindRemoveIngredientButtons();
+      });
+
+      bindRemoveIngredientButtons();
+    }
+
+    // ÉTAPES
+    var stepContainer = document.getElementById('step-rows');
+    var addStepButton = document.getElementById('add-step-row');
+
+    if (stepContainer && addStepButton) {
+      function renumberSteps() {
+        var rows = stepContainer.querySelectorAll('.step-row');
+        rows.forEach(function (row, index) {
+          var badge = row.querySelector('.js-step-index');
+          if (badge) {
+            badge.textContent = index + 1;
+          }
+          var btn = row.querySelector('.js-remove-step');
+          if (!btn) return;
+          if (rows.length === 1) {
+            btn.style.display = 'none';
+          } else {
+            btn.style.display = 'inline-flex';
+          }
+        });
+      }
+
+      function bindRemoveStepButtons() {
+        var rows = stepContainer.querySelectorAll('.step-row');
+        rows.forEach(function (row) {
+          var btn = row.querySelector('.js-remove-step');
+          if (!btn) return;
+          btn.onclick = function () {
+            if (stepContainer.querySelectorAll('.step-row').length > 1) {
+              row.remove();
+              renumberSteps();
+              bindRemoveStepButtons();
+            }
+          };
+        });
+      }
+
+      addStepButton.addEventListener('click', function () {
+        var rows = stepContainer.querySelectorAll('.step-row');
+        if (!rows.length) return;
+        var last = rows[rows.length - 1];
+        var clone = last.cloneNode(true);
+        var textarea = clone.querySelector('textarea');
+        if (textarea) textarea.value = '';
+        stepContainer.appendChild(clone);
+        renumberSteps();
+        bindRemoveStepButtons();
+      });
+
+      renumberSteps();
+      bindRemoveStepButtons();
+    }
+  });
+    </script>
+{% endblock %}

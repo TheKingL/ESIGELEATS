@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Recettes favorites de {{ viewed_user.display_name or viewed_user.username }}{% endblock %}
+{% block content %}
+    <div class="container max-w-3xl py-10 space-y-8">
+        <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">Recettes favorites</h1>
+        {% if favorites|length == 0 %}
+            <div class="rounded-2xl bg-surface-light p-6 text-center text-sm text-ink-soft dark:bg-surface-dark dark:text-ink-lighter">
+                Aucune recette favorite pour le moment.
+            </div>
+        {% else %}
+            <div class="space-y-4">
+                {% for r in favorites %}
+                    <a href="{{ url_for('recipes.show_recipe', recipe_id=r.id) }}"
+                       class="group flex items-center justify-between rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm transition-colors hover:border-primary-300 hover:bg-primary-50/60 dark:border-primary-700/60 dark:bg-surface-dark dark:hover:border-primary-500 dark:hover:bg-primary-700/25">
+                        <div class="flex items-center gap-4">
+                            <!-- Image carré -->
+                            <div class="h-16 w-16 overflow-hidden rounded-xl shadow">
+                                {% if r.image_path %}
+                                    <img src="{{ url_for('static', filename=r.image_path) }}"
+                                         class="h-full w-full object-cover" />
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/default_recipe.png') }}"
+                                         class="h-full w-full object-cover opacity-80" />
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-ink dark:text-ink-inverted">{{ r.title }}</p>
+                                <p class="text-xs text-ink-soft dark:text-ink-lighter">
+                                    Ajouté aux favoris :
+                                    <span class="font-medium">{{ r.favorite_date }}</span>
+                                </p>
+                                {% if r.average_rating %}
+                                    <p class="text-xs text-amber-600 dark:text-amber-300">
+                                        <i class="fa-solid fa-star text-amber-400"></i>
+                                        {{ "%.1f"|format(r.average_rating) }} / 5
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-[11px] text-ink-soft transition-colors group-hover:text-primary-700 dark:text-ink-lighter dark:group-hover:text-primary-100"></i>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

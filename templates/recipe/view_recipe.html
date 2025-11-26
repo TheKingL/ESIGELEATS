@@ -1,0 +1,556 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% from "components/fields/field_textarea.html" import field_textarea %}
+{% block title %}{{ recipe.title }}{% endblock %}
+{% block content %}
+    <div class="container py-8">
+        <div class="mx-auto max-w-4xl space-y-8">
+            <div class="overflow-hidden rounded-2xl bg-surface-soft shadow-lg dark:bg-surface-dark">
+                {% set img = recipe.image_path or "img/default_recipe.png" %}
+                <div class="flex justify-center pt-6 pb-2">
+                    <div class="aspect-square w-40 sm:w-52 md:w-64 overflow-hidden rounded-xl shadow-md">
+                        <img src="{{ url_for('static', filename=img) }}"
+                             class="h-full w-full object-cover"
+                             alt="Image de {{ recipe.title }}" />
+                    </div>
+                </div>
+                <div class="space-y-4 p-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-2">
+                            <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">{{ recipe.title }}</h1>
+                            {% if recipe.description %}
+                                <p class="text-sm text-ink-soft dark:text-ink-lighter">{{ recipe.description }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="flex flex-col items-end gap-3">
+                            <div class="flex items-center gap-2">
+                                {% if current_user and (current_user.id == recipe.author_id or current_user.is_admin) %}
+                                    {{ button("Modifier",
+                                                                        "secondary",
+                                                                        "fa-solid fa-pen",
+                                                                        href=url_for('recipes.edit_recipe', recipe_id=recipe.id) 
+                                    ) }}
+                                    <form method="post"
+                                          action="{{ url_for('recipes.delete_recipe', recipe_id=recipe.id) }}"
+                                          class="inline-block"
+                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.');">
+                                        {{ button("Supprimer",
+                                                                                "danger",
+                                                                                "fa-solid fa-trash",
+                                                                                type="submit") }}
+                                    </form>
+                                {% endif %}
+                                {% if current_user %}
+                                    <button id="favorite-toggle"
+                                            type="button"
+                                            data-recipe-id="{{ recipe.id }}"
+                                            data-active="{{ 1 if is_favorite else 0 }}"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary-100 bg-surface-light text-ink-soft shadow-lg hover:border-primary-300 hover:text-primary-700 dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-lighter dark:hover:border-primary-500 dark:hover:text-primary-50">
+                                        <i class="{% if is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart text-sm {% if is_favorite %}text-rose-500{% endif %}"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-primary-50/70 pt-3 dark:border-primary-800/40">
+                        <!-- Chips d'infos -->
+                        <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-ink-soft dark:text-ink-lighter">
+                            {% if author %}
+                                <span class="inline-flex items-center gap-2 rounded-full bg-primary-50/80 px-3 py-1 shadow-sm border border-primary-100/70 dark:bg-primary-900/30 dark:border-primary-700/60">
+                                    <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-700/50 dark:text-primary-50">
+                                        <i class="fa-solid fa-user text-[11px]"></i>
+                                    </span>
+                                    <a href="{{ url_for('users.user_profile', user_id=author.id) }}"
+                                       class="text-[11px] sm:text-xs font-medium text-ink dark:text-ink-inverted hover:text-primary-700 dark:hover:text-primary-100">
+                                        {{ author.display_name or author.username }}
+                                    </a>
+                                </span>
+                            {% endif %}
+                            <span class="inline-flex items-center gap-2 rounded-full bg-primary-50/80 px-3 py-1 text-[11px] sm:text-xs shadow-sm border border-primary-100/70 dark:bg-primary-900/30 dark:border-primary-700/60">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-700/50 dark:text-primary-50">
+                                    <i class="fa-regular fa-calendar-days text-[11px]"></i>
+                                </span>
+                                <span>
+                                    Créée le
+                                    <span class="font-medium text-ink dark:text-ink-inverted">{{ recipe.created_at or "" }}</span>
+                                </span>
+                            </span>
+                            {% if recipe.prep_time_minutes is not none %}
+                                <span class="inline-flex items-center gap-2 rounded-full bg-primary-50/80 px-3 py-1 text-[11px] sm:text-xs shadow-sm border border-primary-100/70 dark:bg-primary-900/30 dark:border-primary-700/60">
+                                    <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-700/50 dark:text-primary-50">
+                                        <i class="fa-regular fa-clock text-[11px]"></i>
+                                    </span>
+                                    <span>
+                                        <span class="font-medium text-ink dark:text-ink-inverted">{{ recipe.prep_time_minutes }}</span>
+                                        min de préparation
+                                    </span>
+                                </span>
+                            {% endif %}
+                        </div>
+                        {% if recipe.servings %}
+                            <!-- Contrôle de portions -->
+                            <div id="servings-control"
+                                 class="inline-flex items-center gap-2 rounded-full bg-primary-50/80 px-3 py-1 text-[11px] sm:text-xs shadow-sm border border-primary-100/70 dark:bg-primary-900/30 dark:border-primary-700/60">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-700/60 dark:text-primary-50">
+                                    <i class="fa-solid fa-users text-[11px]"></i>
+                                </span>
+                                <span class="text-ink-soft dark:text-ink-lighter">
+                                    <span class="font-medium text-ink dark:text-ink-inverted"
+                                          id="servings-display">
+                                        {{ recipe.servings }} portion{{ 's' if recipe.servings > 1 }}
+                                    </span>
+                                </span>
+                                <div class="ml-1 flex items-center gap-1">
+                                    <button type="button"
+                                            id="servings-decrease"
+                                            class="flex h-6 w-6 items-center justify-center rounded-full bg-surface-soft text-xs text-ink-soft hover:bg-primary-100 hover:text-primary-800 dark:bg-surface-dark dark:text-ink-lighter dark:hover:bg-primary-800/60 dark:hover:text-primary-50">
+                                        <i class="fa-solid fa-minus text-[10px]"></i>
+                                    </button>
+                                    <input id="servings-input"
+                                           type="number"
+                                           min="1"
+                                           step="1"
+                                           value="{{ recipe.servings }}"
+                                           class="w-10 rounded-md border border-primary-100 bg-surface-light px-1 py-0.5 text-center text-xs text-ink focus:border-primary-300 focus:outline-none dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-inverted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                    <button type="button"
+                                            id="servings-increase"
+                                            class="flex h-6 w-6 items-center justify-center rounded-full bg-surface-soft text-xs text-ink-soft hover:bg-primary-100 hover:text-primary-800 dark:bg-surface-dark dark:text-ink-lighter dark:hover:bg-primary-800/60 dark:hover:text-primary-50">
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1">
+                                {% set avg = average_rating or 0 %}
+                                {% set full = avg|int %}
+                                {% for i in range(1, 6) %}
+                                    <i class="js-avg-star fa-{% if i <= full %}solid{% else %}regular{% endif %} fa-star {% if i <= full %}text-amber-400{% else %}text-ink-soft dark:text-ink-lighter{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            <div class="text-xs text-ink-soft dark:text-ink-lighter">
+                                {% if average_rating %}
+                                    <span id="average-rating-text">{{ "%.1f"|format(average_rating) }}/5</span>
+                                {% else %}
+                                    <span id="average-rating-text">Pas encore de note</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if current_user %}
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-ink-soft dark:text-ink-lighter">Votre note :</span>
+                                <div class="flex items-center gap-1"
+                                     id="user-rating-stars"
+                                     data-user-rating="{{ user_rating or 0 }}">
+                                    {% for i in range(1, 6) %}
+                                        <button type="button"
+                                                class="js-rate-star inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-light text-xs shadow-lg hover:bg-primary-50 dark:bg-surface-dark dark:hover:bg-primary-700/30"
+                                                data-value="{{ i }}">
+                                            <i class="fa-{% if user_rating and i <= user_rating %}solid{% else %}regular{% endif %} fa-star {% if user_rating and i <= user_rating %}text-amber-400{% else %}text-ink-soft dark:text-ink-lighter{% endif %}"></i>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if recipe.status != "APPROVED" %}
+                        {% if recipe.status == "REJECTED" %}
+                            <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">
+                                <i class="fa-solid fa-circle-xmark text-[11px]"></i>
+                                <span>Recette refusée par un administrateur</span>
+                            </div>
+                        {% elif recipe.status == "CHANGES_REQUIRED" %}
+                            <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+                                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                                <span>Modifications requises</span>
+                            </div>
+                        {% elif recipe.status == "PENDING" %}
+                            <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                                <i class="fa-solid fa-hourglass-half text-[11px]"></i>
+                                <span>En attente de validation</span>
+                            </div>
+                        {% else %}
+                            <div class="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800/50 dark:text-slate-300">
+                                <i class="fa-solid fa-circle-info text-[11px]"></i>
+                                <span>Statut : {{ recipe.status }}</span>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <section class="rounded-2xl bg-surface-soft p-6 shadow-lg dark:bg-surface-dark">
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-800/60 dark:text-primary-100">
+                            <i class="fa-solid fa-carrot text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-display font-semibold text-primary-700 dark:text-primary-100">Ingrédients</h2>
+                            <p class="text-[11px] text-ink-soft dark:text-ink-lighter">
+                                Ajustez les quantités avec le sélecteur de portions ci-dessus.
+                            </p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-semibold text-ink-soft dark:text-ink-lighter">
+                        {{ ingredients|length }} élément{{ 's' if ingredients|length > 1 }}
+                    </span>
+                </div>
+                <ul class="space-y-3 text-sm text-ink dark:text-ink-inverted">
+                    {% for ing in ingredients %}
+                        <li class="flex flex-row items-center gap-3 rounded-xl border border-primary-50 bg-surface-light/90 px-3 py-2 shadow-sm dark:border-primary-800/60 dark:bg-surface-dark/80"
+                            data-base-quantity="{{ ing.quantity or '' }}">
+                            <span class="mt-[2px] inline-flex h-1.5 w-1.5 rounded-full bg-primary-500 dark:bg-primary-300"></span>
+                            <div class="flex flex-1 flex-wrap items-baseline justify-between gap-2">
+                                <span class="font-medium">{{ ing.ingredient_name }}</span>
+                                <span class="ingredient-quantity text-xs text-ink-soft dark:text-ink-lighter">
+                                    {% if ing.quantity %}
+                                        · {{ ing.quantity }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            <section class="rounded-2xl bg-surface-soft p-6 shadow-lg dark:bg-surface-dark">
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-800/60 dark:text-primary-100">
+                            <i class="fa-solid fa-list-ol text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-display font-semibold text-primary-700 dark:text-primary-100">Étapes de préparation</h2>
+                            <p class="text-[11px] text-ink-soft dark:text-ink-lighter">Suivez les étapes une par une pour un résultat optimal.</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-semibold text-ink-soft dark:text-ink-lighter">
+                        {{ steps|length }} étape{{ 's' if steps|length > 1 }}
+                    </span>
+                </div>
+                <ol class="space-y-3">
+                    {% for step in steps %}
+                        <li class="flex flex-row items-center gap-3 rounded-xl border border-primary-50 bg-surface-light/90 p-3 shadow-sm dark:border-primary-800/60 dark:bg-surface-dark/80">
+                            <div class="mt-0.5">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700 dark:bg-primary-700/50 dark:text-primary-50">
+                                    {{ step.step_number }}
+                                </span>
+                            </div>
+                            <p class="flex-1 text-sm leading-relaxed text-ink dark:text-ink-inverted">{{ step.content }}</p>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+            <!-- COMMENTAIRES -->
+            <section id="comments-section"
+                     class="rounded-2xl bg-surface-soft p-6 shadow-lg dark:bg-surface-dark"
+                     data-comments-url="{{ url_for('api.get_recipe_comments', recipe_id=recipe.id) }}"
+                     data-post-url="{{ url_for('api.add_recipe_comment', recipe_id=recipe.id) }}">
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-800/60 dark:text-primary-100">
+                            <i class="fa-solid fa-comments text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-display font-semibold text-primary-700 dark:text-primary-100">Commentaires</h2>
+                            <p class="text-[11px] text-ink-soft dark:text-ink-lighter">
+                                Partage ton avis sur la recette, tes astuces ou tes variantes.
+                            </p>
+                        </div>
+                    </div>
+                    <span id="comments-count"
+                          class="text-xs font-semibold text-ink-soft dark:text-ink-lighter">0 commentaire</span>
+                </div>
+                {% if current_user %}
+                    <!-- Formulaire d’ajout -->
+                    <form id="comment-form" class="mb-4 space-y-2">
+                        {{ field_textarea(name="comment-content",
+                                                label="Ajouter un commentaire",
+                                                id="comment-content",
+                                                rows=3,
+                                                placeholder="Écris ton commentaire ici…") }}
+                        <div class="flex items-center justify-between">
+                            <p id="comment-error" class="text-[11px] text-rose-500 hidden"></p>
+                            <button type="submit"
+                                    class="inline-flex items-center rounded-full bg-primary-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400/70">
+                                <i class="fa-solid fa-paper-plane mr-2 text-[10px]"></i>
+                                Publier le commentaire
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="mb-4 rounded-xl border border-primary-100 bg-primary-50/80 px-3 py-2 text-xs text-ink-soft dark:border-primary-700/60 dark:bg-primary-900/20 dark:text-ink-lighter">
+                        <i class="fa-solid fa-circle-info mr-2 text-[10px]"></i>
+                        <a href="{{ url_for('auth.login') }}"
+                           class="font-medium text-primary-700 hover:text-primary-900 dark:text-primary-200 dark:hover:text-primary-50">
+                            Connecte-toi
+                        </a>
+                        pour laisser un commentaire sur cette recette.
+                    </div>
+                {% endif %}
+                <!-- Liste des commentaires -->
+                <div id="comments-list" class="space-y-3"></div>
+                <!-- État vide -->
+                <div id="comments-empty"
+                     class="mt-2 text-xs text-ink-soft dark:text-ink-lighter">
+                    Aucun commentaire pour l’instant. Sois le premier à donner ton avis !
+                </div>
+            </section>
+        </div>
+    </div>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+  // FAVORI
+  var btn = document.getElementById("favorite-toggle");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      fetch("{{ url_for('api.toggle_favorite', recipe_id=recipe.id) }}", {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      }).then(function (response) {
+        if (response.status === 401) {
+          window.location.href = "{{ url_for('auth.login') }}";
+          return null;
+        }
+        return response.json();
+      }).then(function (data) {
+          if (!data) return;
+          var icon = btn.querySelector("i");
+          if (data.status === "added") {
+            btn.dataset.active = "1";
+            if (icon) {
+              icon.classList.remove("fa-regular");
+              icon.classList.add("fa-solid", "text-rose-500");
+            }
+            if (window.showFlash) {
+              window.showFlash("Recette ajoutée à vos favoris.", "success");
+            }
+          } else if (data.status === "removed") {
+            btn.dataset.active = "0";
+            if (icon) {
+              icon.classList.remove("fa-solid", "text-rose-500");
+              icon.classList.add("fa-regular");
+            }
+            if (window.showFlash) {
+              window.showFlash("Recette retirée de vos favoris.", "info");
+            }
+          }
+      }).catch(function (err) {
+        console.error(err);
+      });
+    });
+  }
+
+  // RATING
+  var ratingContainer = document.getElementById("user-rating-stars");
+  if (ratingContainer) {
+    var buttons = ratingContainer.querySelectorAll(".js-rate-star");
+
+    function updateUserStars(selected) {
+      buttons.forEach(function (btn) {
+        var value = parseInt(btn.dataset.value, 10);
+        var icon = btn.querySelector("i");
+        if (!icon) return;
+        if (value <= selected) {
+          icon.classList.remove("fa-regular", "text-ink-soft", "dark:text-ink-lighter");
+          icon.classList.add("fa-solid", "text-amber-400");
+        } else {
+          icon.classList.remove("fa-solid", "text-amber-400");
+          icon.classList.add("fa-regular", "text-ink-soft", "dark:text-ink-lighter");
+        }
+      });
+      ratingContainer.dataset.userRating = selected;
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var value = parseInt(btn.dataset.value, 10);
+        fetch("{{ url_for('api.rate_recipe', recipe_id=recipe.id) }}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          body: JSON.stringify({ rating: value })
+        }).then(function (response) {
+          if (response.status === 401) {
+            window.location.href = "{{ url_for('auth.login') }}";
+            return null;
+          }
+          return response.json();
+        }).then(function (data) {
+          if (!data || data.error) return;
+
+          if (data.status === "removed") {
+            updateUserStars(0);
+            if (window.showFlash) {
+              window.showFlash("Votre note a été supprimée.", "info");
+            }
+          } else {
+            updateUserStars(value);
+            if (window.showFlash) {
+              const msg = data.status === "updated"
+                ? "Votre note a été mise à jour."
+                : "Votre note a été enregistrée.";
+              window.showFlash(msg, "success");
+            }
+          }
+
+          if (data.average_rating === null || typeof data.average_rating === "undefined") {
+            var avgStars = document.querySelectorAll(".js-avg-star");
+            avgStars.forEach(function (star) {
+              star.classList.remove("fa-solid", "text-amber-400");
+              star.classList.add("fa-regular", "text-ink-soft", "dark:text-ink-lighter");
+            });
+            var avgText = document.getElementById("average-rating-text");
+            if (avgText) {
+              avgText.textContent = "Pas encore de note";
+            }
+          } else if (typeof data.average_rating === "number") {
+            var avg = data.average_rating;
+            var full = Math.floor(avg);
+            var avgStars = document.querySelectorAll(".js-avg-star");
+            avgStars.forEach(function (star, index) {
+              var i = index + 1;
+              if (i <= full) {
+                star.classList.remove("fa-regular", "text-ink-soft", "dark:text-ink-lighter");
+                star.classList.add("fa-solid", "text-amber-400");
+              } else {
+                star.classList.remove("fa-solid", "text-amber-400");
+                star.classList.add("fa-regular", "text-ink-soft", "dark:text-ink-lighter");
+              }
+            });
+
+            var avgText = document.getElementById("average-rating-text");
+            if (avgText) {
+              avgText.textContent = avg.toFixed(1) + "/5";
+            }
+          }
+        }).catch(function (err) {
+          console.error(err);
+        });
+      });
+    });
+  }
+
+  // === PORTIONS & SCALING DES INGRÉDIENTS ===
+  (function () {
+    // recipe.servings en JS (null si None)
+    var baseServings = {{ recipe.servings|tojson }};
+    if (!baseServings) {
+      return; // pas de portions définies -> on ne fait rien
+    }
+
+    var servingsInput = document.getElementById("servings-input");
+    var servingsDisplay = document.getElementById("servings-display");
+    var btnMinus = document.getElementById("servings-decrease");
+    var btnPlus = document.getElementById("servings-increase");
+    var ingredientRows = document.querySelectorAll("li[data-base-quantity]");
+
+    if (!servingsInput || !servingsDisplay || !ingredientRows.length) {
+      return;
+    }
+
+    var currentServings = baseServings;
+
+    function formatServingsLabel(value) {
+      return value + " portion" + (value > 1 ? "s" : "");
+    }
+
+    function scaleQuantities(newServings) {
+      if (!baseServings || baseServings <= 0) return;
+
+      var factor = newServings / baseServings;
+
+      ingredientRows.forEach(function (row) {
+        var base = row.getAttribute("data-base-quantity") || "";
+        var qtySpan = row.querySelector(".ingredient-quantity");
+        if (!qtySpan) return;
+
+        if (!base.trim()) {
+          qtySpan.textContent = "";
+          return;
+        }
+
+        // Sauvegarde de la quantité d'origine si pas déjà fait
+        if (!row.dataset.originalQuantity) {
+          row.dataset.originalQuantity = base;
+        } else {
+          base = row.dataset.originalQuantity;
+        }
+
+        // On cherche un nombre au début : "2", "2.5", "2,5", etc.
+        var match = base.match(/^(\s*)(\d+(?:[.,]\d+)?)(.*)$/);
+        if (!match) {
+          // Pas de nombre détecté -> texte brut
+          qtySpan.textContent = base.trim();
+          return;
+        }
+
+        var prefixSpaces = match[1] || "";
+        var numStr = match[2].replace(",", ".");
+        var suffix = match[3] || "";
+
+        var num = parseFloat(numStr);
+        if (isNaN(num)) {
+          qtySpan.textContent = base.trim();
+          return;
+        }
+
+        var newVal = num * factor;
+        var formatted;
+
+        if (Number.isInteger(newVal)) {
+          formatted = newVal.toString();
+        } else {
+          formatted = newVal.toFixed(1).replace(".", ",");
+        }
+
+        qtySpan.textContent = prefixSpaces + formatted + suffix;
+      });
+    }
+
+    function applyServings(newVal) {
+      var value = parseInt(newVal, 10);
+      if (isNaN(value) || value < 1) {
+        value = 1;
+      }
+      if (value > 50) {
+        value = 50;
+      }
+
+      currentServings = value;
+      servingsInput.value = value;
+      servingsDisplay.textContent = formatServingsLabel(value);
+      scaleQuantities(value);
+    }
+
+    // Init avec la valeur de base
+    applyServings(baseServings);
+
+    // Events
+    if (btnMinus) {
+      btnMinus.addEventListener("click", function () {
+        applyServings(currentServings - 1);
+      });
+    }
+
+    if (btnPlus) {
+      btnPlus.addEventListener("click", function () {
+        applyServings(currentServings + 1);
+      });
+    }
+
+    servingsInput.addEventListener("change", function () {
+      applyServings(servingsInput.value);
+    });
+  })();
+});
+    </script>
+    <script src="{{ url_for('static', filename='js/add_comment.js') }}"></script>
+{% endblock %}

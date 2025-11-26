@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Erreur interne{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="max-w-lg space-y-4 text-center">
+            <div class="inline-flex items-center justify-center rounded-full bg-surface-soft px-4 py-1 text-xs font-medium uppercase tracking-wide text-rose-600 dark:bg-surface-dark/70 dark:text-rose-300">
+                <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300">
+                    <i class="fa-solid fa-circle-xmark text-xs"></i>
+                </span>
+                500 · Erreur interne du serveur
+            </div>
+            <h1 class="text-3xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                Une erreur inattendue s'est produite.
+            </h1>
+            <p class="text-sm text-ink-soft dark:text-ink-lighter">
+                Notre serveur a rencontré un problème. Réessayez plus tard ou revenez à l'accueil.
+            </p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {{ button(label="Retour à l'accueil",
+                                variant="primary",
+                                icon_class="fa-solid fa-house",
+                                href=url_for('main.home') 
+                ) }}
+                {{ button(label="Réessayer",
+                                variant="secondary",
+                                icon_class="fa-solid fa-rotate-right",
+                                href="javascript:location.reload();") }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

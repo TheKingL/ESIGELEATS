@@ -1,0 +1,109 @@
+name: 🚀 CI/CD - Esigeleats
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: 🔍 Qualité (Lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🌪 Ruff (Linter & Format)
+        run: |
+          echo "Vérification avec Ruff..."
+          ruff check .
+          ruff format .
+
+      - name: 🥒 DjLint (Templates Jinja)
+        run: |
+          echo "Vérification des templates..."
+          djlint templates/ --profile=jinja --check
+
+      - name: 🧐 Pylint (Score check)
+        run: |
+          echo "Exécution de Pylint sur les dossiers clés..."
+          pylint controllers models routes tests utils app.py > pylint_output.txt || true
+          
+          echo "==== Résultat Pylint ===="
+          cat pylint_output.txt
+          
+          SCORE=$(grep -oP "(?<=rated at )[\d\.]+" pylint_output.txt || echo "0")
+          echo "Score pylint détecté : $SCORE / 10"
+          
+          python3 - <<EOF
+          import sys
+          try:
+              score = float("$SCORE")
+          except ValueError:
+              score = 0
+          
+          if score < 7.0:
+              print(f"❌ Score Pylint insuffisant ({score}/10). Minimum requis : 7.0")
+              sys.exit(1)
+          else:
+              print(f"✅ Score Pylint validé ({score}/10). C'est carré.")
+          EOF
+
+  tests:
+    name: 🧪 Tests Unitaires
+    runs-on: ubuntu-latest
+    needs: quality
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🛡 Configurer SECRET_KEY pour les tests
+        run: echo "SECRET_KEY=cle_secrete_pour_les_tests_bang_bang" >> .env
+
+      - name: 📂 Initialiser la BDD pour les tests
+        run: |
+          echo "Création de la base de données..."
+          pip install pysqlite3
+          sqlite3 database.db < sql/setupdb.sql
+          echo "✅ Base de données créée !"
+
+      - name: 🚀 Lancer les tests avec Coverage
+        run: |
+          coverage run --source=routes/ -m pytest
+          coverage report
+          coverage report --fail-under=70
+
+  build:
+    name: 🐳 Docker Build (Check)
+    runs-on: ubuntu-latest
+    needs: tests
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t esigeleats:latest .

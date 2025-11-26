@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% from "components/fields/field_text.html" import field_text %}
+{% from "components/fields/field_password.html" import field_password %}
+{% from "components/buttons.html" import button %}
+{% block title %}Inscription{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="w-full max-w-md rounded-2xl bg-surface-soft px-6 py-8 shadow-lg dark:bg-surface-dark">
+            <div class="mb-6 text-center">
+                <div class="mb-3 inline-flex items-center justify-center rounded-full bg-primary-50 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary-700 dark:bg-primary-700/20 dark:text-primary-100">
+                    <i class="fa-solid fa-utensils mr-2 text-xs"></i>
+                    Inscription à ESIGELEATS
+                </div>
+                <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">Créez votre compte</h1>
+                <p class="mt-1 text-sm text-ink-soft dark:text-ink-lighter">
+                    Rejoignez ESIGELEATS pour sauvegarder vos recettes, favoris et annotations.
+                </p>
+            </div>
+            <form method="post"
+                  action="{{ url_for('auth.register') }}"
+                  class="space-y-4">
+                {{ field_text("username",
+                                "Nom d'utilisateur",
+                                placeholder="Nom d'utilisateur",
+                                value=(form.get("username") if form else ""),
+                required=True,
+                error=(errors.get("username") if errors else None)
+                ) }}
+                {{ field_text("display_name",
+                                "Nom de profil",
+                                placeholder="Nom de profil",
+                                value=(form.get("display_name") if form else ""),
+                required=True,
+                error=(errors.get("display_name") if errors else None)
+                ) }}
+                {{ field_password("password",
+                                "Mot de passe",
+                                required=True,
+                                placeholder="8 caractères min, 1 maj, 1 min, 1 chiffre, 1 caractère spécialx",
+                                error=(errors.get("password") if errors else None)
+                ) }}
+                {{ field_password("password_confirm",
+                                "Confirmation du mot de passe",
+                                placeholder="Mot de passe",
+                                required=True,
+                                error=(errors.get("password_confirm") if errors else None)
+                ) }}
+                <div class="flex items-center justify-between pt-2">
+                    <a href="{{ url_for('auth.login') }}"
+                       class="text-xs font-medium text-primary-500 hover:text-primary-700 underline dark:text-primary-300 dark:hover:text-primary-100">
+                        Déjà un compte ? Connexion
+                    </a>
+                    {{ button("Créer mon compte", variant="primary", icon_class="fa-solid fa-user-plus", type="submit") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

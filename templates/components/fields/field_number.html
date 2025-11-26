@@ -1,0 +1,30 @@
+{% macro field_number(
+    name,
+    label,
+    value="",
+    min=None,
+    max=None,
+    step=None,
+    placeholder="",
+    error=None,
+    required=False
+    ) %}
+    <div class="space-y-1">
+        <label for="{{ name }}"
+               class="block text-sm font-medium text-ink dark:text-ink-inverted">
+            {{ label }}
+            {% if required %}<span class="text-rose-500">*</span>{% endif %}
+        </label>
+        <input type="number"
+               id="{{ name }}"
+               name="{{ name }}"
+               value="{{ value }}"
+               placeholder="{{ placeholder }}"
+               {% if min is not none %}min="{{ min }}"{% endif %}
+               {% if max is not none %}max="{{ max }}"{% endif %}
+               {% if step is not none %}step="{{ step }}"{% endif %}
+               {% if required %}required aria-required="true"{% endif %}
+               class="block w-full rounded-lg border border-primary-100 bg-surface-light px-3 py-2 text-sm text-ink placeholder:text-ink-soft/60 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-inverted dark:placeholder:text-ink-lighter/60 dark:focus:border-primary-400 {{ 'border-rose-400 focus:border-rose-500 focus:ring-rose-400/40 dark:border-rose-500' if error }}" />
+        {% if error %}<p class="text-xs text-rose-600 dark:text-rose-400">{{ error }}</p>{% endif %}
+    </div>
+{% endmacro %}

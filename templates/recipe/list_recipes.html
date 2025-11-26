@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Toutes les recettes{% endblock %}
+{% block content %}
+    <div class="container max-w-5xl py-10 space-y-10">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">Recettes ESIGELEATS</h1>
+            <div class="flex gap-3">
+                {% if current_user %}
+                    {{ button("Créer une recette", "primary", "fa-solid fa-plus", href=url_for("recipes.create_recipe") ) }}
+                {% endif %}
+                {% if current_user and current_user.is_admin %}
+                    {{ button("Ajouter ingrédient", "secondary", "fa-solid fa-carrot", href=url_for("recipes.add_ingredient") ) }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <input id="search-bar"
+                   type="text"
+                   placeholder="Rechercher une recette..."
+                   class="w-full sm:w-1/2 rounded-xl border border-primary-100 bg-surface-light px-4 py-2 text-sm shadow-sm focus:border-primary-300 focus:outline-none dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-inverted">
+            <div class="flex flex-wrap items-center gap-2">
+                <button class="sort-btn rounded-full px-3 py-1.5 text-xs font-semibold bg-primary-100 text-primary-700 hover:bg-primary-200 hover:text-primary-800 dark:bg-primary-900/40 dark:text-primary-200 dark:hover:bg-primary-700/50 dark:hover:text-primary-50"
+                        data-sort="date">
+                    <i class="fa-solid fa-calendar"></i> Récent → Ancien
+                </button>
+                <button class="sort-btn rounded-full px-3 py-1.5 text-xs font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 dark:hover:bg-amber-700/40 dark:hover:text-amber-200"
+                        data-sort="rating">
+                    <i class="fa-solid fa-star"></i> Meilleures
+                </button>
+                <button class="sort-btn rounded-full px-3 py-1.5 text-xs font-semibold bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 dark:hover:bg-rose-700/40 dark:hover:text-rose-200"
+                        data-sort="favorites">
+                    <i class="fa-solid fa-heart"></i> + Favoris
+                </button>
+            </div>
+        </div>
+        <div id="recipes-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+    </div>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const list = document.getElementById("recipes-list");
+    const searchBar = document.getElementById("search-bar");
+    const sortButtons = document.querySelectorAll(".sort-btn");
+
+    let recipes = [];
+    let currentSort = "date";
+
+    function fetchRecipes() {
+        fetch("{{ url_for('api.get_recipes') }}")
+            .then(r => r.json())
+            .then(data => {
+                recipes = data;
+                renderRecipes();
+            });
+    }
+
+    function renderRecipes() {
+        let filtered = recipes.filter(r =>
+            r.title.toLowerCase().includes(searchBar.value.toLowerCase())
+        );
+
+        if (currentSort === "rating") {
+            filtered.sort((a, b) =>
+                (b.average_rating || 0) - (a.average_rating || 0)
+            );
+        } else if (currentSort === "favorites") {
+            filtered.sort((a, b) =>
+                b.favorites_count - a.favorites_count
+            );
+        } else {
+            filtered.sort((a, b) =>
+                new Date(b.created_at) - new Date(a.created_at)
+            );
+        }
+
+        list.innerHTML = "";
+
+        filtered.forEach(r => {
+            const rating = r.average_rating
+                ? `<span class='text-xs text-amber-600 dark:text-amber-300'>
+                        <i class='fa-solid fa-star text-amber-400'></i>
+                        ${r.average_rating.toFixed(1)} / 5
+                   </span>`
+                : `<span class='text-xs text-ink-soft dark:text-ink-lighter'>Aucune note</span>`;
+
+            const favorites = `
+                <span class='text-xs text-rose-600 dark:text-rose-300'>
+                    <i class="fa-solid fa-heart"></i> ${r.favorites_count}
+                </span>
+            `;
+
+            const img = r.image_path
+                ? `{{ url_for('static', filename='') }}${r.image_path}`
+                : "{{ url_for('static', filename='img/default_recipe.png') }}";
+
+            const html = `
+            <a href="/recipes/${r.id}" class="group rounded-2xl overflow-hidden border border-primary-100 bg-surface-light shadow-sm hover:shadow-md transition dark:border-primary-700/60 dark:bg-surface-dark">
+
+                <img src="${img}" class="w-full h-40 object-cover" />
+
+                <div class="p-4 space-y-2">
+                    <h3 class="font-semibold text-primary-700 dark:text-primary-100 group-hover:text-primary-500">
+                        ${r.title}
+                    </h3>
+
+                    <p class="text-xs text-ink-soft dark:text-ink-lighter truncate">
+                        Par ${r.author}
+                    </p>
+
+                    <div class="flex items-center justify-between">
+                        ${rating}
+                        ${favorites}
+                    </div>
+
+                    <p class="text-[11px] text-ink-soft dark:text-ink-lighter">
+                        ${r.prep_time_minutes || "?"} min • ${r.servings || "?"} pers
+                    </p>
+                </div>
+            </a>`;
+            list.innerHTML += html;
+        });
+    }
+
+    sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            currentSort = btn.dataset.sort;
+            renderRecipes();
+        });
+    });
+
+    searchBar.addEventListener("input", renderRecipes);
+
+    fetchRecipes();
+});
+    </script>
+{% endblock %}

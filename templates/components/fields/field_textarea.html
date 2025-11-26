@@ -1,0 +1,17 @@
+{% macro field_textarea(name, label="", rows=3, value="", id=None, placeholder="", required=False, error=None) %}
+    {% if label %}
+        <div class="space-y-1">
+            <label for="{{ id or name }}"
+                   class="block text-sm font-medium text-ink dark:text-ink-inverted">
+                {{ label }}
+                {% if required %}<span class="text-rose-500">*</span>{% endif %}
+            </label>
+        {% endif %}
+        <textarea id="{{ id or name }}"
+                  name="{{ name }}"
+                  rows="{{ rows }}"
+                  placeholder="{{ placeholder }}"
+                  class="block w-full rounded-lg border border-primary-100 bg-surface-light px-3 py-2 text-sm text-ink focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-inverted dark:focus:border-primary-400">{{ value }}</textarea>
+        {% if error %}<p class="text-xs text-rose-600 dark:text-rose-400">{{ error }}</p>{% endif %}
+        {% if label %}</div>{% endif %}
+{% endmacro %}

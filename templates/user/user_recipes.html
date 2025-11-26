@@ -1,0 +1,129 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% from "components/notifications.html" import notif_pill %}
+{% block title %}Mes recettes{% endblock %}
+{% block content %}
+    <div class="container py-10 max-w-4xl space-y-8">
+        <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">
+            Recettes de {{ viewed_user.display_name or viewed_user.username }}
+        </h1>
+        <div class="flex flex-wrap gap-3 text-sm">
+            <button class="filter-btn px-3 py-1.5 rounded-full bg-primary-300 text-primary-700 text-xs font-semibold hover:bg-primary-200 hover:text-primary-800 ring ring-primary-400 dark:bg-primary-700/40 dark:text-primary-100 dark:hover:bg-primary-700/60 dark:hover:text-primary-50"
+                    data-filter="all">
+                <i class="fa-solid fa-layer-group text-[11px]"></i>
+                Toutes
+            </button>
+            <button class="filter-btn px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold hover:bg-amber-200 hover:text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 dark:hover:bg-amber-900/60 dark:hover:text-amber-100"
+                    data-filter="PENDING">
+                <i class="fa-solid fa-hourglass-half text-[11px]"></i>
+                En attente
+            </button>
+            <button class="filter-btn px-3 py-1.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold hover:bg-orange-200 hover:text-orange-800 dark:bg-orange-900/40 dark:text-orange-200 dark:hover:bg-orange-900/60 dark:hover:text-orange-100 inline-flex items-center gap-1"
+                    data-filter="CHANGES_REQUIRED">
+                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                <span>À modifier</span>
+                {% if current_user and current_user.id == viewed_user.id %}
+                    {{ notif_pill("changes-required",
+                                        navbar_changes_required_count if navbar_changes_required_count is defined else 0,
+                                        "ml-1") }}
+                {% endif %}
+            </button>
+            <button class="filter-btn px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold hover:bg-emerald-200 hover:text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:hover:bg-emerald-900/60 dark:hover:text-emerald-100"
+                    data-filter="APPROVED">
+                <i class="fa-solid fa-circle-check text-[11px]"></i>
+                Validées
+            </button>
+            <button class="filter-btn px-3 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-semibold hover:bg-rose-200 hover:text-rose-800 dark:bg-rose-900/40 dark:text-rose-200 dark:hover:bg-rose-900/60 dark:hover:text-rose-100"
+                    data-filter="REJECTED">
+                <i class="fa-solid fa-circle-xmark text-[11px]"></i>
+                Refusées
+            </button>
+        </div>
+        <div id="recipes-list" class="grid gap-4 sm:grid-cols-2"></div>
+    </div>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const list = document.getElementById("recipes-list");
+    const filterButtons = document.querySelectorAll(".filter-btn");
+
+    let allRecipes = [];
+
+    function fetchRecipes() {
+        fetch("{{ url_for('api.get_user_recipes', user_id=viewed_user.id) }}")
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) return;
+            allRecipes = data.recipes;
+            renderRecipes("all");
+        });
+    }
+
+    function renderRecipes(filter) {
+        list.innerHTML = "";
+
+        const filtered = filter === "all"
+            ? allRecipes
+            : allRecipes.filter(r => r.status === filter);
+
+        if (filtered.length === 0) {
+            list.innerHTML = `
+                <p class="text-sm text-ink-soft dark:text-ink-lighter">Aucune recette.</p>
+            `;
+            return;
+        }
+
+        for (const r of filtered) {
+            list.innerHTML += `
+                <a href="/recipes/${r.id}" class="group block rounded-2xl border border-primary-100 bg-surface-light shadow-md hover:shadow-lg transition overflow-hidden dark:border-primary-700/40 dark:bg-surface-dark">
+                    <div class="h-40 w-full overflow-hidden">
+                        <img src="{{ url_for('static', filename='') }}${r.image_path ? r.image_path : 'img/default_recipe.png'}" class="object-cover w-full h-full group-hover:scale-105 transition" />
+                    </div>
+
+                    <div class="p-4 space-y-2">
+                        <h3 class="font-semibold text-primary-700 dark:text-primary-100">${r.title}</h3>
+
+                        <span class="inline-flex items-center gap-1 text-xs rounded-full px-2.5 py-0.5 font-medium ${statusTag(r.status)}">
+                            ${statusName(r.status)}
+                        </span>
+
+                        <div class="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-300">
+                            <i class="fa-solid fa-star text-amber-400"></i>
+                            ${r.average_rating.toFixed(1)} / 5
+                            <span class="text-[10px]">(${r.rating_count})</span>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+    }
+
+    function statusTag(s) {
+        return {
+            "PENDING": "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
+            "CHANGES_REQUIRED": "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200",
+            "APPROVED": "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
+            "REJECTED": "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200",
+        }[s] || "";
+    }
+
+    function statusName(s) {
+        return {
+            "PENDING": "En attente",
+            "CHANGES_REQUIRED": "À modifier",
+            "APPROVED": "Validée",
+            "REJECTED": "Refusée",
+        }[s] || s;
+    }
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterButtons.forEach(b => b.classList.remove("ring", "ring-primary-400"));
+            btn.classList.add("ring", "ring-primary-400");
+            renderRecipes(btn.dataset.filter);
+        });
+    });
+
+    fetchRecipes();
+});
+    </script>
+{% endblock %}

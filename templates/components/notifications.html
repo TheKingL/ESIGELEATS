@@ -1,0 +1,6 @@
+{% macro notif_pill(target, initial_count=0, extra_classes="") %}
+    <span class="inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-rose-500 dark:bg-rose-700 px-[5px] text-[10px] font-bold text-white shadow-sm {{ extra_classes }} {% if not initial_count or initial_count <= 0 %}hidden{% endif %}"
+          data-notif-target="{{ target }}">
+        {{ initial_count if initial_count and initial_count < 10 else ( '9+' if initial_count and initial_count >= 10 else '' ) }}
+    </span>
+{% endmacro %}

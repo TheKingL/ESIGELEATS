@@ -1,0 +1,44 @@
+{% macro button(label=None, variant="primary", icon_class=None, icon_raw=None, type="button", href=None, id=None, aria_label=None, icon_only=False) %}
+    {% if icon_only %}
+        {% set base_classes = "inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2" %}
+    {% else %}
+        {% set base_classes = "inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2" %}
+    {% endif %}
+    {% if variant == "primary" %}
+        {% set variant_classes = "bg-primary-500 text-white shadow-lg hover:bg-primary-700 focus:ring-primary-500 dark:focus:ring-offset-background-dark" %}
+    {% elif variant == "secondary" %}
+        {% set variant_classes = "border border-primary-200 text-ink-soft hover:border-primary-400 hover:text-primary-700 dark:border-primary-700/60 dark:text-ink-lighter dark:hover:border-primary-500 dark:hover:text-primary-50" %}
+    {% elif variant == "danger" %}
+        {% set variant_classes = "bg-rose-500 text-white shadow-lg hover:bg-rose-600 focus:ring-rose-500 dark:focus:ring-offset-background-dark" %}
+    {% elif variant == "ghost-circle" %}
+        {% set variant_classes = "border border-primary-100/60 bg-surface-light text-ink-soft shadow-lg hover:bg-primary-50 dark:border-primary-700 dark:bg-surface-dark dark:text-ink-lighter dark:hover:bg-primary-700/40" %}
+    {% else %}
+        {% set variant_classes = "" %}
+    {% endif %}
+    {% set classes = base_classes + " " + variant_classes %}
+    {% if href %}
+        <a href="{{ href }}"
+           class="{{ classes }}"
+           {% if id %}id="{{ id }}"{% endif %}
+           {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+            {% if icon_raw %}
+                {{ icon_raw|safe }}
+            {% elif icon_class %}
+                <i class="{{ icon_class }} {% if label and not icon_only %}mr-2 text-xs{% endif %}"></i>
+            {% endif %}
+            {% if label and not icon_only %}{{ label }}{% endif %}
+        </a>
+    {% else %}
+        <button type="{{ type }}"
+                class="{{ classes }}"
+                {% if id %}id="{{ id }}"{% endif %}
+                {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+            {% if icon_raw %}
+                {{ icon_raw|safe }}
+            {% elif icon_class %}
+                <i class="{{ icon_class }} {% if label and not icon_only %}mr-2 text-xs{% endif %}"></i>
+            {% endif %}
+            {% if label and not icon_only %}{{ label }}{% endif %}
+        </button>
+    {% endif %}
+{% endmacro %}

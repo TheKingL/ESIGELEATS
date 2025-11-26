@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Méthode non autorisée{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="max-w-lg space-y-4 text-center">
+            <div class="inline-flex items-center justify-center rounded-full bg-surface-soft px-4 py-1 text-xs font-medium uppercase tracking-wide text-red-600 dark:bg-surface-dark/70 dark:text-red-300">
+                <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-300">
+                    <i class="fa-solid fa-ban text-xs"></i>
+                </span>
+                405 · Méthode non autorisée
+            </div>
+            <h1 class="text-3xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                La méthode HTTP utilisée n'est pas autorisée pour cette ressource.
+            </h1>
+            <p class="text-sm text-ink-soft dark:text-ink-lighter">
+                Veuillez vérifier la méthode de requête ou retourner à la page d'accueil.
+            </p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {{ button(label="Accueil",
+                                variant="primary",
+                                icon_class="fa-solid fa-house",
+                                href=url_for('main.home') 
+                ) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

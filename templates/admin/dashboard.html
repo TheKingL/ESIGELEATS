@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% from "components/notifications.html" import notif_pill %}
+{% block title %}Panel administrateur{% endblock %}
+{% block content %}
+    <div class="container max-w-5xl py-10 space-y-8">
+        <!-- En-tête -->
+        <div class="space-y-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="space-y-1">
+                    <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">Gestion d'ESIGELEATS</h1>
+                    <p class="text-sm text-ink-soft dark:text-ink-lighter">
+                        Surveille les utilisateurs, les recettes et les validations depuis une vue centralisée.
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    {{ button("Retour à l'accueil",
+                                        "secondary",
+                                        "fa-solid fa-house",
+                                        href=url_for('main.home') 
+                    ) }}
+                </div>
+            </div>
+        </div>
+        <!-- Actions principales -->
+        <section class="rounded-2xl bg-surface-soft p-6 shadow-lg dark:bg-surface-dark space-y-5">
+            <h2 class="text-lg font-display font-semibold text-primary-700 dark:text-primary-100">Outils d'administration</h2>
+            <div class="grid gap-4 md:grid-cols-2">
+                <!-- Gestion des utilisateurs -->
+                <a href="{{ url_for('admin.list_users') }}"
+                   class="group flex flex-col justify-between rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm transition-colors ease-linear duration-300 hover:border-primary-300 hover:bg-primary-50/80 dark:border-primary-700/60 dark:bg-surface-dark dark:hover:border-primary-500 dark:hover:bg-primary-700/25">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700 dark:bg-primary-700/40 dark:text-primary-100">
+                            <i class="fa-solid fa-users text-sm"></i>
+                        </span>
+                        <div class="space-y-1">
+                            <p class="text-sm font-semibold text-ink dark:text-ink-inverted">Utilisateurs</p>
+                            <p class="text-xs text-ink-soft dark:text-ink-lighter">
+                                Voir la liste complète des comptes et accéder à chaque profil.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs text-ink-soft dark:text-ink-lighter">
+                        <span>Liste détaillée</span>
+                        <i class="fa-solid fa-chevron-right text-[11px] text-ink-soft transition-colors ease-linear duration-300 group-hover:text-primary-700 dark:text-ink-lighter dark:group-hover:text-primary-100"></i>
+                    </div>
+                </a>
+                <!-- Gestion des recettes -->
+                <a href="{{ url_for('admin.recipes') }}"
+                   class="group flex flex-col justify-between rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm transition-colors ease-linear duration-300 hover:border-primary-300 hover:bg-primary-50/80 dark:border-primary-700/60 dark:bg-surface-dark dark:hover:border-primary-500 dark:hover:bg-primary-700/25">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+                            <i class="fa-solid fa-bowl-food text-sm"></i>
+                        </span>
+                        <div class="space-y-1">
+                            <p class="text-sm font-semibold text-ink dark:text-ink-inverted">Recettes</p>
+                            <p class="text-xs text-ink-soft dark:text-ink-lighter">
+                                Accéder à toutes les recettes (validées ou non) et les détails associés.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs text-ink-soft dark:text-ink-lighter">
+                        <span>Listing complet</span>
+                        <i class="fa-solid fa-chevron-right text-[11px] text-ink-soft transition-colors ease-linear duration-300 group-hover:text-primary-700 dark:text-ink-lighter dark:group-hover:text-primary-100"></i>
+                    </div>
+                </a>
+                <!-- Interface de validation -->
+                <a href="{{ url_for('admin.recipes_validation') }}"
+                   class="group flex flex-col justify-between rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm transition-colors ease-linear duration-300 hover:border-primary-300 hover:bg-primary-50/80 dark:border-primary-700/60 dark:bg-surface-dark dark:hover:border-primary-500 dark:hover:bg-primary-700/25">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700 dark:bg-primary-700/40 dark:text-primary-100">
+                            <i class="fa-solid fa-clipboard-check text-sm"></i>
+                        </span>
+                        <div class="space-y-1">
+                            <p class="flex flex-row items-center text-sm font-semibold text-ink dark:text-ink-inverted">
+                                Validation des recettes
+                                {{ notif_pill("admin-pending",
+                                                                navbar_pending_recipes_count if navbar_pending_recipes_count is defined else 0,
+                                                                "ml-1") }}
+                            </p>
+                            <p class="text-xs text-ink-soft dark:text-ink-lighter">
+                                Passer en revue les recettes en attente et changer leur statut en temps réel.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs text-ink-soft dark:text-ink-lighter">
+                        <span>Interface temps réel</span>
+                        <i class="fa-solid fa-chevron-right text-[11px] opacity-80 group-hover:opacity-100"></i>
+                    </div>
+                </a>
+                <!-- Dashboard & insights -->
+                <a href="{{ url_for('admin.insights') }}"
+                   class="group flex flex-col justify-between rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm transition-colors ease-linear duration-300 hover:border-primary-300 hover:bg-primary-50/80 dark:border-primary-700/60 dark:bg-surface-dark dark:hover:border-primary-500 dark:hover:bg-primary-700/25">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700 dark:bg-primary-700/40 dark:text-primary-100">
+                            <i class="fa-solid fa-chart-line text-sm"></i>
+                        </span>
+                        <div class="space-y-1">
+                            <p class="text-sm font-semibold text-ink dark:text-ink-inverted">Dashboard & insights</p>
+                            <p class="text-xs text-ink-soft dark:text-ink-lighter">
+                                Visualiser les performances du site avec des graphiques Nivo (à venir).
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs text-ink-soft dark:text-ink-lighter">
+                        <span>Visualisation des données</span>
+                        <i class="fa-solid fa-chevron-right text-[11px] text-ink-soft group-hover:text-primary-700 dark:text-ink-lighter dark:group-hover:text-primary-100"></i>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </div>
+{% endblock %}

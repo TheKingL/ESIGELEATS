@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Page introuvable{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="max-w-lg space-y-4 text-center">
+            <div class="inline-flex items-center justify-center rounded-full bg-surface-soft px-4 py-1 text-xs font-medium uppercase tracking-wide text-ink-soft dark:bg-surface-dark/70 dark:text-ink-lighter">
+                <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300">
+                    <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                </span>
+                404 · Page introuvable
+            </div>
+            <h1 class="text-3xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                Oups, cette page n'existe pas.
+            </h1>
+            <p class="text-sm text-ink-soft dark:text-ink-lighter">
+                La page que vous recherchez a peut-être été supprimée, renommée ou est temporairement indisponible.
+            </p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {{ button(label="Retour à l'accueil",
+                                variant="primary",
+                                icon_class="fa-solid fa-house",
+                                href=url_for('main.home') 
+                ) }}
+                {{ button(label="Page précédente",
+                                variant="secondary",
+                                icon_class="fa-solid fa-arrow-left",
+                                href="javascript:history.back()") }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

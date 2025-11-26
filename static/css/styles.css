@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  input,
+  button,
+  a,
+  h3,
+  select,
+  textarea {
+    @apply transition-colors ease-linear duration-300;
+  }
+}
+
+@keyframes toast-slide {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  10%, 80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.toast {
+  animation: toast-slide 3s ease-in-out forwards;
+}

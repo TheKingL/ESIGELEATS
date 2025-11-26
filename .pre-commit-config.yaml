@@ -1,0 +1,56 @@
+repos:
+  # Ruff : lint + format Python
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.6
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  # Hooks locaux : pylint, djlint, eslint, prettier
+  - repo: local
+    hooks:
+      # Pylint
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        files: "^(controllers|models|routes|tests|utils|add_admin\\.py|app\\.py)"
+        args:
+          - "--output-format=colorized"
+          - "--fail-under=7.0"
+
+      # Djlint pour les templates Jinja
+      - id: djlint
+        name: djlint (jinja)
+        entry: djlint
+        language: system
+        types: [file]
+        files: "^templates/.*\\.html$"
+        args:
+          - "--profile=jinja"
+          - "--reformat"
+
+      # ESLint pour JS
+      - id: eslint
+        name: eslint
+        entry: npx
+        language: node
+        types: [ javascript ]
+        files: "^static/js/.*\\.js$"
+        args:
+          - eslint
+          - static/js
+          - --max-warnings=0
+
+      # Prettier pour formater le JS
+      - id: prettier-js
+        name: prettier (js)
+        entry: npx
+        language: node
+        types: [javascript]
+        files: "^static/js/.*\\.js$"
+        args:
+          - "prettier"
+          - "--write"

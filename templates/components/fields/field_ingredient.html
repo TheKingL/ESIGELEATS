@@ -1,0 +1,28 @@
+{% macro ingredient_row(ingredient_name="", quantity="") %}
+    <div class="ingredient-row flex flex-row gap-3">
+        <div class="flex-1 space-y-1">
+            <label class="block text-sm font-medium text-ink dark:text-ink-inverted">Ingrédient</label>
+            <input type="text"
+                   name="ingredient_name[]"
+                   list="ingredients-options"
+                   value="{{ ingredient_name }}"
+                   placeholder="Carotte, Oignon..."
+                   class="block w-full rounded-lg border border-primary-100 bg-surface-light px-3 py-2 text-sm text-ink placeholder:text-ink-soft/60 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-inverted dark:placeholder:text-ink-lighter/60 dark:focus:border-primary-400" />
+        </div>
+        <div class="sm:w-48 space-y-1">
+            <label class="block text-sm font-medium text-ink dark:text-ink-inverted">Quantité</label>
+            <input type="text"
+                   name="ingredient_quantity[]"
+                   value="{{ quantity }}"
+                   placeholder="2 pièces, 100 g..."
+                   class="block w-full rounded-lg border border-primary-100 bg-surface-light px-3 py-2 text-sm text-ink placeholder:text-ink-soft/60 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-inverted dark:placeholder:text-ink-lighter/60 dark:focus:border-primary-400" />
+        </div>
+        <div class="sm:w-auto flex items-center sm:mt-4">
+            <button type="button"
+                    class="js-remove-ingredient inline-flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-white text-sm shadow-lg hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 dark:bg-rose-600 dark:hover:bg-rose-500 dark:focus:ring-rose-500 transition-colors ease-linear duration-200"
+                    aria-label="Retirer cet ingrédient">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+        </div>
+    </div>
+{% endmacro %}

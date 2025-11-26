@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Insights & statistiques{% endblock %}
+{% block content %}
+    <div class="max-w-5xl mx-auto py-8 space-y-8">
+        <!-- Header -->
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                    Tableau de bord d’ESIGELEATS
+                </h1>
+                <p class="mt-1 text-sm text-ink-soft dark:text-ink-lighter">Visualise l’activité de la plateforme</p>
+            </div>
+            {{ button("Retour admin",
+                        "secondary",
+                        "fa-solid fa-arrow-left",
+                        href=url_for('admin.dashboard') 
+            ) }}
+        </div>
+        <!-- KPIs -->
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Recettes totales</p>
+                <p id="kpi-total-recipes"
+                   class="mt-1 text-2xl font-semibold text-primary-700 dark:text-primary-100">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">Toutes les recettes (tout statut confondu).</p>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Recettes en attente</p>
+                <p id="kpi-pending-recipes"
+                   class="mt-1 text-2xl font-semibold text-amber-600 dark:text-amber-300">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">
+                    Statut <strong>PENDING</strong>.
+                </p>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Recettes à modifier</p>
+                <p id="kpi-changes-required"
+                   class="mt-1 text-2xl font-semibold text-orange-600 dark:text-orange-300">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">
+                    Statut <strong>CHANGES_REQUIRED</strong>.
+                </p>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Recettes refusées</p>
+                <p id="kpi-rejected-recipes"
+                   class="mt-1 text-2xl font-semibold text-rose-600 dark:text-rose-300">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">
+                    Statut <strong>REJECTED</strong>.
+                </p>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Utilisateurs</p>
+                <p id="kpi-total-users"
+                   class="mt-1 text-2xl font-semibold text-ink dark:text-ink-inverted">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">Comptes créés sur la plateforme.</p>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Notes données</p>
+                <p id="kpi-total-ratings"
+                   class="mt-1 text-2xl font-semibold text-amber-600 dark:text-amber-300">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">Nombre total d’avis.</p>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Favoris</p>
+                <p id="kpi-total-favorites"
+                   class="mt-1 text-2xl font-semibold text-rose-600 dark:text-rose-300">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">Nombre total d’ajouts en favoris.</p>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <p class="text-xs text-ink-soft dark:text-ink-lighter">Commentaires</p>
+                <p id="kpi-total-comments"
+                   class="mt-1 text-2xl font-semibold text-primary-700 dark:text-primary-100">—</p>
+                <p class="mt-1 text-[11px] text-ink-soft dark:text-ink-lighter">Tous les commentaires de recettes.</p>
+            </div>
+        </section>
+        <!-- Statuts & évolution -->
+        <section class="grid gap-6 lg:grid-cols-2">
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-ink dark:text-ink-inverted">Répartition des statuts de recettes</h2>
+                </div>
+                <div id="chart-status" class="h-80"></div>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-ink dark:text-ink-inverted">Recettes dans le temps</h2>
+                    <span class="text-[11px] text-ink-soft dark:text-ink-lighter">Créées vs validées (par jour)</span>
+                </div>
+                <div id="chart-recipes-by-day" class="h-80"></div>
+            </div>
+        </section>
+        <!-- Notes & auteurs -->
+        <section class="grid gap-6 lg:grid-cols-2">
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-ink dark:text-ink-inverted">Distribution des notes</h2>
+                    <span class="text-[11px] text-ink-soft dark:text-ink-lighter">Nombre d’avis par note (1 à 5).</span>
+                </div>
+                <div id="chart-rating-distribution" class="h-80"></div>
+            </div>
+            <div class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-ink dark:text-ink-inverted">Auteurs les plus actifs</h2>
+                    <span class="text-[11px] text-ink-soft dark:text-ink-lighter">Top auteurs par nombre de recettes publiées.</span>
+                </div>
+                <div id="chart-top-authors" class="h-80"></div>
+            </div>
+        </section>
+        <!-- Recettes les plus engageantes -->
+        <section class="rounded-2xl border border-primary-100 bg-surface-light p-4 shadow-sm dark:border-primary-700/60 dark:bg-surface-dark">
+            <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-ink dark:text-ink-inverted">Recettes les plus engageantes</h2>
+                <span class="text-[11px] text-ink-soft dark:text-ink-lighter">Favoris & commentaires.</span>
+            </div>
+            <div id="chart-top-recipes" class="h-72"></div>
+        </section>
+    </div>
+    <!-- Passage de l’URL d’API au JS -->
+    <script>window.ADMIN_STATS_ENDPOINT = "{{ url_for('api.admin_stats_overview') }}";</script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="{{ url_for('static', filename='js/admin_insights.js') }}"></script>
+{% endblock %}

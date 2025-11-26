@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Authentification requise{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="max-w-lg space-y-4 text-center">
+            <div class="inline-flex items-center justify-center rounded-full bg-surface-soft px-4 py-1 text-xs font-medium uppercase tracking-wide text-blue-600 dark:bg-surface-dark/70 dark:text-blue-300">
+                <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                </span>
+                401 · Authentification requise
+            </div>
+            <h1 class="text-3xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                Vous devez être connecté pour accéder à cette page.
+            </h1>
+            <p class="text-sm text-ink-soft dark:text-ink-lighter">Connectez-vous pour continuer, ou retournez à l'accueil.</p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {{ button(label="Connexion",
+                                variant="primary",
+                                icon_class="fa-solid fa-right-to-bracket",
+                                href=url_for('auth.login') 
+                ) }}
+                {{ button(label="Accueil",
+                                variant="secondary",
+                                icon_class="fa-solid fa-house",
+                                href=url_for('main.home') 
+                ) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

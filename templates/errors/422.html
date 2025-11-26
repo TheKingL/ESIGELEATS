@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Requête invalide{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="max-w-lg space-y-4 text-center">
+            <div class="inline-flex items-center justify-center rounded-full bg-surface-soft px-4 py-1 text-xs font-medium uppercase tracking-wide text-yellow-600 dark:bg-surface-dark/70 dark:text-yellow-300">
+                <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-50 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-300">
+                    <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                </span>
+                422 · Données invalides
+            </div>
+            <h1 class="text-3xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                Les données envoyées ne sont pas valides.
+            </h1>
+            <p class="text-sm text-ink-soft dark:text-ink-lighter">Vérifiez votre saisie puis réessayez.</p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {{ button(label="Corriger",
+                                variant="primary",
+                                icon_class="fa-solid fa-arrow-left",
+                                href="javascript:history.back()") }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

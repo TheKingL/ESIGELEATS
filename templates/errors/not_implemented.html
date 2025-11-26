@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Fonctionnalité à venir{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="max-w-lg space-y-4 text-center">
+            <div class="inline-flex items-center justify-center rounded-full bg-surface-soft px-4 py-1 text-xs font-medium uppercase tracking-wide text-ink-soft dark:bg-surface-dark/70 dark:text-ink-lighter">
+                <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary-50 text-primary-700 dark:bg-primary-700/30 dark:text-primary-100">
+                    <i class="fa-solid fa-utensils text-xs"></i>
+                </span>
+                Bientôt disponible
+            </div>
+            <h1 class="text-3xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                Cette page n'est pas encore disponible.
+            </h1>
+            <p class="text-sm text-ink-soft dark:text-ink-lighter">
+                On est encore en train de cuisiner cette partie d'ESIGELEATS.
+                Revenez plus tard pour découvrir la suite du menu.
+            </p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {{ button(label="Retour à l'accueil",
+                                variant="primary",
+                                icon_class="fa-solid fa-house",
+                                href=url_for('main.home') 
+                ) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

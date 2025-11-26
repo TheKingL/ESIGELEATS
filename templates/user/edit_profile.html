@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% from "components/fields/field_text.html" import field_text %}
+{% from "components/fields/field_checkbox.html" import field_checkbox %}
+{% from "components/buttons.html" import button %}
+{% from "components/fields/field_textarea.html" import field_textarea %}
+{% block title %}Modifier votre profil{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="w-full max-w-md rounded-2xl bg-surface-soft px-6 py-8 shadow-lg dark:bg-surface-dark">
+            <div class="mb-6 text-center">
+                <div class="mb-3 inline-flex items-center justify-center rounded-full bg-primary-50 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary-700 dark:bg-primary-700/20 dark:text-primary-100">
+                    <i class="fa-solid fa-pen mr-2 text-xs"></i>
+                    Modifier le profil
+                </div>
+                <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">Modifie ton profil</h1>
+                <p class="mt-1 text-sm text-ink-soft dark:text-ink-lighter">Personnalise ton profil comme tu le souhaites.</p>
+            </div>
+            <form method="post"
+                  action="{{ url_for('users.edit_user_profile', user_id=user.id) }}"
+                  class="space-y-4">
+                {{ field_text("username",
+                                "Nom d'utilisateur",
+                                "text",
+                                value=(form.get("username") if form else ""),
+                required=True,
+                error=(errors.get("username") if errors else None)
+                ) }}
+                {{ field_text("display_name",
+                                "Nom d'affichage",
+                                "text",
+                                value=(form.get("display_name") if form else ""),
+                required=True,
+                error=(errors.get("display_name") if errors else None)
+                ) }}
+                {{ field_textarea(name="bio",
+                                label="Biographie",
+                                rows=4,
+                                placeholder="Parle-nous un peu de toi...",
+                                value=(form.bio if form and form.bio is not none else "") ,
+                error=(errors.bio if errors and errors.bio is not none else None)
+                ) }}
+                {{ field_checkbox("is_profile_public",
+                                "Profil public",
+                                checked=(form.get("is_profile_public") if form else false),
+                description="Si cette option est désactivée, seules vous et les administrateurs pourrez voir votre profil."
+                ) }}
+                <div class="flex items-center justify-end pt-2">
+                    {{ button("Enregistrer les modifications", variant="primary", icon_class="fa-solid fa-save", type="submit") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

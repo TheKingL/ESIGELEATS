@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+{% block title %}Ajouter un ingrédient{% endblock %}
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="w-full max-w-md rounded-2xl bg-surface-soft px-6 py-8 shadow-lg dark:bg-surface-dark">
+            <div class="mb-6 text-center">
+                <div class="mb-3 inline-flex items-center justify-center rounded-full bg-primary-50 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary-700 dark:bg-primary-700/20 dark:text-primary-100">
+                    <i class="fa-solid fa-carrot mr-2 text-xs"></i>
+                    Ajouter un ingrédient
+                </div>
+                <h1 class="text-2xl font-display font-semibold text-primary-700 dark:text-primary-100">Nouvel ingrédient</h1>
+                <p class="mt-1 text-sm text-ink-soft dark:text-ink-lighter">Ajoute un ingrédient disponible dans l'application.</p>
+            </div>
+            <form method="post"
+                  action="{{ url_for('recipes.add_ingredient') }}"
+                  class="space-y-4">
+                <div class="space-y-1">
+                    <label for="name"
+                           class="block text-sm font-medium text-ink dark:text-ink-inverted">
+                        Nom de l'ingrédient
+                    </label>
+                    <input type="text"
+                           id="name"
+                           name="name"
+                           value="{{ form.name }}"
+                           placeholder="Ex : Courgette"
+                           required
+                           class="w-full rounded-lg border border-primary-100 bg-surface-light px-3 py-2 text-sm shadow-sm focus:border-primary-300 focus:outline-none dark:border-primary-700/60 dark:bg-surface-dark dark:text-ink-inverted" />
+                    {% if errors.name %}<p class="text-xs text-rose-600 dark:text-rose-300">{{ errors.name }}</p>{% endif %}
+                </div>
+                <div class="flex items-center justify-end pt-2">
+                    {{ button("Ajouter l'ingrédient", "primary", "fa-solid fa-plus", type="submit") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
