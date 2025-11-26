@@ -157,7 +157,7 @@ npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify
 # Lancer le serveur (Debug mode)
 flask run --debug
 ```
-🚀 Accédez à l'application sur : **http://127.0.0.1:5000**
+🚀 Accédez à l'application sur : **http://127.0.0.1:5050**
 
 ---
 
@@ -170,7 +170,7 @@ Pour lancer l'application dans un conteneur isolé sans rien installer :
 docker build -t esigeleats .
 
 # Lancer le conteneur
-docker run --rm -p 5000:5000 esigeleats
+docker run --rm -p 5050:5050 esigeleats
 ```
 
 ---
