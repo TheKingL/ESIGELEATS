@@ -82,6 +82,17 @@ Page exclusive aux administrateurs avec des graphiques **ApexCharts** interactif
 * Évolution temporelle des créations/validations.
 * Distribution des notes et Top Auteurs.
 
+### 🛠️ 7. Ajouts supplémentaires
+
+* **Dark Mode :** Support complet du mode sombre (bouton en haut à droite du site).
+* **Gestion des erreurs :** Pages d'erreur personnalisées (404, 500, etc.).
+* **Componentifcation :** Utilisation de macros Jinja pour les éléments récurrents (formulaires, cartes, etc.).
+* **Injections SQL :** Utilisation de requêtes paramétrées pour prévenir les injections SQL.
+* **Faille XSS** : Prévention des attaques XSS via échappement automatique de Jinja.
+* **Reponsive** : Prise en compte du responsive sur certaines pages mais pas pour tous les éléments.
+* **Upload sécurisé** : Renommage automatique des fichiers images (UUID) et validation des extensions.
+* **Notifications Flash** : Flash JS **ET** Python non-intrusives pour confirmer les actions utilisateurs.
+
 ---
 
 ## 🛠️ Stack Technique
