@@ -365,6 +365,14 @@ def show_recipe(recipe_id):
         return render_template("errors/404.html"), 404
 
     author = user_controller.get_by_id(recipe.author_id)
+    current_user = session.get("user")
+    if author and not author.is_profile_public:
+        is_owner = current_user and current_user["id"] == author.id
+        is_admin = current_user and current_user.get("is_admin")
+
+        if not (is_owner or is_admin):
+            return render_template("errors/403_recipe_private.html", viewed_user=author), 403
+
     ingredients = ingredient_controller.get_ingredients_for_recipe(recipe_id)
     steps = recipe_controller.get_steps_for_recipe(recipe_id)
     average_rating = recipe_controller.get_average_rating(recipe_id)

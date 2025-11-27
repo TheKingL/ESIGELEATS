@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% from "components/buttons.html" import button %}
+
+{% block title %}Recette privée{% endblock %}
+
+{% block content %}
+    <div class="flex min-h-[60vh] items-center justify-center">
+        <div class="max-w-lg space-y-4 text-center">
+            <!-- Badge Cadenas -->
+            <div class="inline-flex items-center justify-center rounded-full bg-surface-soft px-4 py-1 text-xs font-medium uppercase tracking-wide text-amber-600 dark:bg-surface-dark/70 dark:text-amber-300">
+                <span class="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                </span>
+                Accès restreint
+            </div>
+
+            <!-- Titre -->
+            <h1 class="text-3xl font-display font-semibold text-primary-700 dark:text-primary-100">
+                Cette recette est privée.
+            </h1>
+
+            <!-- Explication -->
+            <p class="text-sm text-ink-soft dark:text-ink-lighter leading-relaxed">
+                Cette recette appartient à
+                <span class="font-semibold text-ink dark:text-ink-inverted">{{ viewed_user.display_name or viewed_user.username }}</span>,
+                qui a choisi de rendre son profil invisible au public.<br>
+                Seuls l'auteur et les administrateurs peuvent consulter ce contenu.
+            </p>
+
+            <!-- Actions -->
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                {{ button("Voir les recettes publiques", "secondary", "fa-solid fa-book-open", href=url_for('recipes.list_recipes') ) }}
+                {{ button("Retour à l'accueil", "primary", "fa-solid fa-house", href=url_for('main.home') ) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

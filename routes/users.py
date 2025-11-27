@@ -215,7 +215,7 @@ def user_favorite_recipes(current_user, user_id):
     is_admin = current_user.get("is_admin", False)
 
     if not viewed_user.is_profile_public and not (is_owner or is_admin):
-        return render_template("errors/403_profile_private.html"), 403
+        return render_template("errors/403_profile_private.html", viewed_user=viewed_user), 403
 
     favorites = recipe_controller.get_favorite_recipes_for_user(user_id)
 
