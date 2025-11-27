@@ -39,12 +39,17 @@ class CommentController:
             content,
         )
 
-        row = self.db.execute(
-            """
-            SELECT c.*, u.username, u.display_name, u.is_admin, u.is_profile_public FROM comments c
+        query = """
+            SELECT c.*, u.username, u.display_name, u.is_admin, u.is_profile_public 
+            FROM comments c
             JOIN users u ON u.id = c.user_id
-            WHERE c.id = last_insert_rowid()
-            """
-        )[0]
+            WHERE c.recipe_id = ? AND c.user_id = ?
+            ORDER BY c.id DESC
+            LIMIT 1
+        """
+        rows = self.db.execute(query, recipe_id, user_id)
 
-        return _row_to_comment(row)
+        if not rows:
+            raise RuntimeError("Erreur critique : Impossible de retrouver le commentaire créé.")
+
+        return _row_to_comment(rows[0])
