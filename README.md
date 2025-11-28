@@ -155,9 +155,6 @@ sqlite3 database.db < sql/setupdb.sql
 
 # (Optionnel) Données de démo
 sqlite3 database.db < sql/fill_recipes.sql
-
-# Créer un Admin
-python add_admin.py
 ```
 
 ### 5. Build CSS & Lancement
@@ -199,3 +196,24 @@ coverage run --sources=routes/ -m pytest
 coverage report
 coverage html # génère un rapport HTML détaillé dans htmlcov/
 ```
+
+---
+
+## 🔐 Comptes de Démo
+
+Voici la liste des comptes pré-configurés pour tester l'application.
+
+| Identifiant (Username) | Mot de passe      | Rôle / Visibilité                |
+|:-----------------------|:------------------|:---------------------------------|
+| **`admin`**            | `adminpassword`   | 👑 Administrateur                |
+| **`chiqueta`**         | `d5H_:dKztiW@E9]` | 🔒 Utilisateur Standard (Privé)  |
+| `cazauxl`              | `adminpassword`   | 👤 Utilisateur Standard (Public) |
+| `totol`                | `j5Gwg%e5;G25N&]` | 👤 Utilisateur Standard (Public) |
+| `serazina`             | `d5H_:dKztiW@E9]` | 👤 Utilisateur Standard (Public) |
+| `gordon_du_93`         | `adminpassword`   | 👤 Utilisateur Standard (Public) |
+| `mamie_gateau`         | `adminpassword`   | 👤 Utilisateur Standard (Public) |
+| `fitboy_2000`          | `adminpassword`   | 👤 Utilisateur Standard (Public) |
+| `vegan_warrior`        | `adminpassword`   | 👤 Utilisateur Standard (Public) |
+| `le_gras_cest_la_vie`  | `adminpassword`   | 👤 Utilisateur Standard (Public) |
+| `spicy_mama`           | `adminpassword`   | 👤 Utilisateur Standard (Public) |
+| `sugar_rush`           | `adminpassword`   | 👤 Utilisateur Standard (Public) |

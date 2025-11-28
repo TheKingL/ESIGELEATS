@@ -1,6 +1,7 @@
 """Fichier principal de l'application Flask."""
 
 import os
+import sqlite3
 
 from flask import Flask
 from flask_session import Session
@@ -32,8 +33,41 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Database + controllers
-db = SQL("sqlite:///database.db")
+DB_FILE = "database.db"
+
+def init_db_if_needed():
+    """Crée et remplit la base de données si elle n'existe pas."""
+    if not os.path.exists(DB_FILE):
+        print(f"Base de données '{DB_FILE}' introuvable. Initialisation en cours...")
+
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+
+        try:
+            print("> Exécution de setupdb.sql...")
+            with open("sql/setupdb.sql", "r", encoding="utf-8") as f:
+                cursor.executescript(f.read())
+
+            print("> Exécution de fill_recipes.sql...")
+            with open("sql/fill_recipes.sql", "r", encoding="utf-8") as f:
+                cursor.executescript(f.read())
+
+            conn.commit()
+            print("Base de données créée et remplie avec succès !")
+
+        except Exception as e:
+            print(f"Erreur lors de l'initialisation de la BDD : {e}")
+            conn.close()
+            os.remove(DB_FILE)
+            exit(1)
+        finally:
+            conn.close()
+    else:
+        print(f"Base de données '{DB_FILE}' détectée. Démarrage...")
+
+
+init_db_if_needed()
+db = SQL(f"sqlite:///{DB_FILE}")
 
 app.user_controller = UserController(db)
 app.recipe_controller = RecipeController(db)
@@ -50,4 +84,4 @@ app.register_blueprint(admin_bp)
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5050)
+    app.run(debug=True, port=5050, host="0.0.0.0")

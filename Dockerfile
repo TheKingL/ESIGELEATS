@@ -6,12 +6,19 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install gunicorn
 
-COPY . .
+COPY controllers/ controllers/
+COPY models/ models/
+COPY routes/ routes/
+COPY utils/ utils/
+COPY sql/ sql/
+COPY sql.py .
+COPY templates/ templates/
+COPY static/ static/
+COPY utils/ utils/
+COPY app.py .
 
 EXPOSE 5050
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5050", "app:app"]
+CMD ["python", "app.py"]

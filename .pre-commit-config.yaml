@@ -16,7 +16,7 @@ repos:
         entry: pylint
         language: system
         types: [python]
-        files: "^(controllers|models|routes|tests|utils|add_admin\\.py|app\\.py)"
+        files: "^(controllers|models|routes|tests|utils|app\\.py)"
         args:
           - "--output-format=colorized"
           - "--fail-under=7.0"
